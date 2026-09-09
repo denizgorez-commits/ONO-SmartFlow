@@ -1,0 +1,33 @@
+name: Fix Avatar Voice Screen
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Replace Avatar component
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          a=s.index('function Avatar({voice=false})')
+          b=s.index('function Studio(',a)
+          fn=r'''function Avatar({voice=false}){if(voice)return h`<div className="fade space-y-6"><div className="bg-white rounded-3xl border p-7 shadow-sm"><div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5"><div><div className="text-xs font-black text-[#96004B]">STAR.LINK AI / AVATAR / SESLER</div><h1 className="text-3xl font-black mt-2">Ses Stüdyosu</h1><p className="text-sm text-slate-500 mt-2">Eğitim videolarında kullanacağın sesleri yönet.</p></div><button onClick=${()=>alert('Ses kayıt paneli açılıyor.')} className="px-5 py-3 rounded-xl bg-[#96004B] text-white font-black">🎙 Ses Kaydet</button></div><div className="grid md:grid-cols-3 gap-4 mt-7">${[['Ses Kaydet','Mikrofonla yeni ses kaydı oluştur.','🎙'],['Mevcut Sesi Yükle','MP3 veya WAV dosyası ekle.','↑'],['Mevcut Sesleri Kullan','Kayıtlı kurumsal seslerden seç.','♫']].map(x=>h`<button onClick=${()=>alert(x[0]+' paneli açılıyor.')} className="rounded-2xl border-2 border-slate-100 p-5 text-left hover:border-[#FFC629] hover:shadow-lg transition"><div className="w-12 h-12 rounded-xl bg-[#FFF8EC] flex items-center justify-center text-2xl">${x[2]}</div><h3 className="font-black mt-4">${x[0]}</h3><p className="text-xs text-slate-500 mt-1">${x[1]}</p></button>`)}</div></div><div><div className="flex items-center justify-between mb-4"><div><h2 className="text-xl font-black">Mevcut Sesler</h2><p className="text-sm text-slate-400 mt-1">Kullanıma hazır kurumsal sesler.</p></div><span className="text-xs font-black text-[#96004B] bg-[#96004B14] px-3 py-2 rounded-full">4 SES</span></div><div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">${voices.map(v=>h`<div className="bg-white rounded-2xl border p-5 shadow-sm"><div className="flex items-center gap-3"><div className="w-12 h-12 rounded-xl bg-[#96004B] text-white flex items-center justify-center text-xl">♫</div><div><b className="font-black">${v[0]}</b><p className="text-[11px] text-slate-400">${v[1]}</p></div></div><p className="text-xs text-slate-500 mt-4">${v[2]}</p><div className="mt-4 h-1.5 rounded-full bg-slate-200"><div className="h-full w-2/5 rounded-full bg-[#FFC629]"></div></div><div className="flex gap-2 mt-4"><button onClick=${()=>alert(v[0]+' sesi dinleniyor.')} className="flex-1 py-2.5 rounded-xl bg-slate-100 text-xs font-bold">▶ Dinle</button><button onClick=${()=>alert(v[0]+' sesi seçildi.')} className="flex-1 py-2.5 rounded-xl bg-[#96004B] text-white text-xs font-black">Kullan</button></div></div>`)}</div></div></div>`;return h`<div className="fade space-y-6"><div className="bg-gradient-to-br from-[#96004B] via-[#6E0037] to-[#8A2858] rounded-3xl p-7 text-white"><p className="text-xs text-white/70">STAR.LINK AI / AVATAR / AI EĞİTMENLER</p><h1 className="text-3xl font-black mt-2">AI Avatar Eğitmenleri</h1><p className="text-sm text-white/75 mt-2">Videolu eğitimlerinde kullanabileceğin dijital eğitmeni seç.</p></div><div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">${avatars.map(a=>h`<div className="bg-white rounded-2xl border overflow-hidden shadow-sm"><div className=${`h-52 bg-gradient-to-br ${a[2]} flex items-center justify-center`}><${I} n="user-round" c="w-16 h-16 text-white"/></div><div className="p-5"><h3 className="font-black">${a[0]}</h3><p className="text-xs text-slate-400 mt-1">${a[1]}</p><button onClick=${()=>alert(a[0]+' avatarı seçildi.')} className="w-full mt-4 py-2.5 rounded-xl bg-[#2B2B2B] text-white text-xs font-bold">Avatarı Seç</button></div></div>`)}</div></div>`}
+'''
+          p.write_text(s[:a]+fn+s[b:],encoding='utf-8')
+          PY
+      - name: Commit and remove
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Fix Avatar voice studio" || true
+          rm .github/workflows/fix-avatar-voice.yml
+          git add -A
+          git commit -m "Remove temporary voice workflow" || true
+          git push
