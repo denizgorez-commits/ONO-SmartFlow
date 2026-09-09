@@ -1,0 +1,43 @@
+name: Apply Starlink AI Brand Palette
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  recolor:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply palette
+        shell: python
+        run: |
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          repl={
+            '#f5f7fb':'#FFF8EC','#172033':'#2B2B2B','#07111f':'#96004B','#101c2d':'#6E0037','#0b1726':'#5F0030',
+            '#31445c':'#7A174C','#172b43':'#6E0037','#3b4b60':'#8A2858','#142b45':'#74103F','#40536b':'#8A2858',
+            '#26384b':'#5F0030','#1b2735':'#3B1830','#5b461f':'#7A4A13','#cbd5e1':'#E5E5E5','#eef2f7':'#FFF8EC',
+            '#fbbf24':'#FFC629','#f59e0b':'#FFC629','#facc15':'#FFC629','#fef3c7':'#FFF8EC',
+            'text-indigo-600':'text-sumak','text-indigo-500':'text-sumak','bg-indigo-50':'bg-sumak-soft','bg-indigo-500':'bg-sumak',
+            'bg-indigo-600':'bg-sumak','bg-violet-500':'bg-sumak','bg-violet-600':'bg-sumak','bg-violet-700':'bg-sumak',
+            'bg-blue-500':'bg-sumak','bg-blue-600':'bg-sumak','bg-blue-700':'bg-sumak','bg-cyan-500':'bg-sumak',
+            'bg-emerald-500':'bg-sumak','bg-teal-600':'bg-sumak','border-indigo-300':'border-gold','border-indigo-200':'border-gold',
+            'ring-amber-100':'ring-gold-soft','focus:ring-amber-300':'focus:ring-gold','bg-yellow-400':'bg-gold','text-yellow-400':'text-gold',
+            'bg-amber-400':'bg-gold','bg-amber-50':'bg-gold-soft','border-amber-400':'border-gold','text-amber-500':'text-gold',
+            'bg-slate-950':'bg-charcoal','text-slate-950':'text-charcoal'
+          }
+          for a,b in repl.items(): s=s.replace(a,b)
+          css='''<style>\n.bg-sumak{background-color:#96004B!important}.bg-sumak-soft{background-color:#96004B14!important}.text-sumak{color:#96004B!important}.border-gold{border-color:#FFC629!important}.ring-gold-soft{--tw-ring-color:#FFC62933!important}.focus\\:ring-gold:focus{--tw-ring-color:#FFC629!important}.bg-gold{background-color:#FFC629!important}.bg-gold-soft{background-color:#FFF8EC!important}.text-gold{color:#FFC629!important}.bg-charcoal{background-color:#2B2B2B!important}.text-charcoal{color:#2B2B2B!important}\n[class*="bg-gradient-to-"]{--tw-gradient-from:#96004B;--tw-gradient-to:#FFC629}.range{accent-color:#FFC629!important}.active{background:linear-gradient(90deg,#96004B26,#FFC62918)!important;box-shadow:inset 3px 0 #FFC629!important}\n</style>'''
+          s=s.replace('</head>',css+'</head>')
+          p.write_text(s,encoding='utf-8')
+      - name: Commit and remove one-shot workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -f .github/workflows/apply-brand-palette.yml
+          git add index.html .github/workflows/apply-brand-palette.yml
+          git diff --cached --quiet || git commit -m "Apply Starlink AI brand palette"
+          git push
