@@ -9,28 +9,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Restore Avatar voice screen
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          import re
-          p = Path('index.html')
-          s = p.read_text(encoding='utf-8')
-          s = re.sub(r"const voices=\[.*?\];", "const voices=[['Ayşe','Kadın • Türkçe','Doğal ve sıcak','mic'],['Mert','Erkek • Türkçe','Profesyonel ve net','volume-2'],['Selin','Kadın • Türkçe','Enerjik ve genç','sparkles'],['Emre','Erkek • Türkçe','Kurumsal ve sakin','headphones']];", s, count=1, flags=re.S)
-          start = s.index('function Avatar({voice=false}){')
-          end = s.index('function Editor(', start)
-          avatar = r'''function Avatar({voice=false}){return voice?h`<div className="fade space-y-6"><div className="bg-white rounded-3xl border p-7"><p className="text-xs text-sumak font-bold">Starlink AI / Avatar / Sesler</p><div className="flex justify-between items-start gap-5"><div><h1 className="text-3xl font-black mt-2">Ses Stüdyosu</h1><p className="text-sm text-slate-400 mt-2">Ses kaydet, yükle veya mevcut kurumsal seslerden seç.</p></div><button onClick=${()=>alert('Ses kayıt paneli hazırlanıyor.')} className="px-5 py-3 rounded-xl bg-charcoal text-white font-bold text-sm">🎙 Ses Kaydet</button></div><div className="grid md:grid-cols-3 gap-4 mt-7">${[['Ses Kaydet','mic','Mikrofonla yeni ses oluştur.'],['Mevcut Sesi Yükle','upload','MP3/WAV ses dosyanı ekle.'],['Mevcut Sesleri Kullan','library','Kurumsal ses havuzundan seç.']].map(x=>h`<button onClick=${()=>alert(x[0]+' paneli açılıyor.')} className="p-5 rounded-2xl border text-left hover:border-[#96004B] hover:shadow-md transition"><${I} n=${x[1]} c="w-6 text-sumak"/><h3 className="font-black mt-4">${x[0]}</h3><p className="text-xs text-slate-400 mt-1">${x[2]}</p></button>`)}</div></div><div><h2 className="text-xl font-black mb-4">Mevcut Sesler</h2><div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">${voices.map(v=>h`<div className="bg-white rounded-2xl border p-5"><div className="flex items-center gap-3"><div className="w-11 h-11 rounded-xl bg-sumak-soft text-sumak flex items-center justify-center"><${I} n=${v[3]} c="w-5"/></div><div><b>${v[0]}</b><p className="text-[11px] text-slate-400">${v[1]}</p></div></div><p className="text-xs text-slate-500 mt-4">${v[2]}</p><div className="flex gap-2 mt-4"><button onClick=${()=>alert(v[0]+' sesi çalınıyor.')} className="flex-1 py-2 rounded-lg bg-slate-100 text-xs font-bold">▶ Dinle</button><button onClick=${()=>alert(v[0]+' sesi seçildi.')} className="flex-1 py-2 rounded-lg bg-sumak text-white text-xs font-bold">Kullan</button></div></div>`)}</div></div></div>`:h`<div className="fade space-y-6"><div className="rounded-3xl p-7 text-white bg-gradient-to-br from-[#96004B] via-[#6E0037] to-[#7A174C]"><p className="text-xs text-slate-300">Starlink AI / Avatar / AI Eğitmenler</p><h1 className="text-3xl font-black mt-2">AI Avatar Eğitmenleri</h1><p className="text-sm text-slate-300 mt-2">Videolu eğitimlerinde kullanabileceğin dijital eğitmeni seç.</p><button onClick=${()=>alert('Yeni avatar oluşturma paneli hazırlanıyor.')} className="mt-5 px-5 py-3 rounded-xl bg-gold text-charcoal font-black text-sm">+ Yeni Avatar Oluştur</button></div><div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">${avatars.map(a=>h`<div className="bg-white rounded-2xl border overflow-hidden shadow-sm"><div className=${`h-44 bg-gradient-to-br ${a[2]} flex items-center justify-center`}><${I} n="user-round" c="w-16 h-16 text-white"/></div><div className="p-5"><h3 className="font-black">${a[0]}</h3><p className="text-xs text-slate-400 mt-1">${a[1]}</p><button onClick=${()=>alert(a[0]+' avatarı seçildi.')} className="w-full mt-4 py-2.5 rounded-xl bg-charcoal text-white text-xs font-bold">Avatarı Seç</button></div></div>`)}</div></div>`}
-'''
-          s = s[:start] + avatar + s[end:]
-          p.write_text(s, encoding='utf-8')
-          PY
-      - name: Remove temporary fix workflow
-        run: |
-          rm -f .github/workflows/fix-avatar-voice.yml
+      - name: Restore stable Avatar voice data
+        run: python -c "from pathlib import Path; import re; p=Path('index.html'); s=p.read_text(encoding='utf-8'); s=re.sub(r\"const voices=\\[.*?\\];\", \"const voices=[['Ayşe','Kadın • Türkçe','Doğal ve sıcak','mic'],['Mert','Erkek • Türkçe','Profesyonel ve net','volume-2'],['Selin','Kadın • Türkçe','Enerjik ve genç','sparkles'],['Emre','Erkek • Türkçe','Kurumsal ve sakin','headphones']];\", s, count=1, flags=re.S); p.write_text(s,encoding='utf-8')"
+      - name: Remove temporary workflow
+        run: rm -f .github/workflows/fix-avatar-voice.yml
       - name: Commit changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html .github/workflows/fix-avatar-voice.yml
-          git diff --cached --quiet || git commit -m "Restore Avatar voice screen"
+          git diff --cached --quiet || git commit -m "Restore stable Avatar voice data"
           git push
