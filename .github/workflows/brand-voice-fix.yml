@@ -1,0 +1,41 @@
+name: Finalize Starlink AI branding
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  finalize:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fix branding and voice screen
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          old='<div className="text-xl font-black">STARLINK <span className="text-gold">AI</span></div><div className="text-[9px] tracking-[.2em] text-slate-400 mt-1">EĞİTİM • OPERASYON • GELİŞİM</div>'
+          new='<div className="flex items-center gap-2"><span className="text-3xl text-gold leading-none">★</span><div className="text-xl font-black tracking-tight">STAR<span className="text-gold">.LINK</span> <span className="text-gold">AI</span></div></div><div className="text-[8px] tracking-[.13em] text-slate-400 mt-1 ml-9">PEOPLE • KNOWLEDGE • A BETTER TOMORROW</div>'
+          s=s.replace(old,new,1)
+          s=s.replace('ONO SmartFlow / Avatar / Sesler','STARLINK AI / Avatar / Sesler')
+          s=s.replace('ONO SmartFlow / Avatar / AI Eğitmenler','STARLINK AI / Avatar / AI Eğitmenler')
+          # Keep the voice page stable and independent from optional icons.
+          s=s.replace("['Ayşe','Kadın • Türkçe','Doğal ve sıcak','mic'],['Mert','Erkek • Türkçe','Profesyonel ve net','volume-2'],['Selin','Kadın • Türkçe','Enerjik ve genç','sparkles'],['Emre','Erkek • Türkçe','Kurumsal ve sakin','headphones']", "['Ayşe','Kadın • Türkçe','Doğal ve sıcak','mic'],['Mert','Erkek • Türkçe','Profesyonel ve net','volume'],['Selin','Kadın • Türkçe','Enerjik ve genç','sparkles'],['Emre','Erkek • Türkçe','Kurumsal ve sakin','headphones']",1)
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet || git commit -m "Finalize Starlink AI branding and voice screen"
+          git push
+      - name: Remove workflow
+        run: |
+          rm -f .github/workflows/brand-voice-fix.yml
+          git add .github/workflows/brand-voice-fix.yml
+          git commit -m "Remove temporary branding workflow" || true
+          git push || true
