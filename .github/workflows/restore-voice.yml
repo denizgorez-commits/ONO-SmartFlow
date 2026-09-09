@@ -1,0 +1,41 @@
+name: Restore Voice Studio
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore voice navigation and studio
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          old = "const menus=[['Anasayfa','layout-dashboard'],"
+          if "['Sesler','volume-2']" not in s:
+              s = s.replace(old, "const menus=[['Anasayfa','layout-dashboard'],['Sesler','volume-2'],", 1)
+          old2 = "function Module({title,item,open}){"
+          if "if(title==='Sesler')return h`<${Avatar} voice/>`;" not in s:
+              s = s.replace(old2, old2 + "if(title==='Sesler')return h`<${Avatar} voice/>`;", 1)
+          p.write_text(s, encoding='utf-8')
+          PY
+      - name: Verify
+        run: |
+          grep -q "\['Sesler','volume-2'\]" index.html
+          grep -q "if(title==='Sesler')return" index.html
+      - name: Commit changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git diff --cached --quiet || git commit -m 'Restore visible Sesler menu'
+          git push
