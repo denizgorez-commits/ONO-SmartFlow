@@ -9,14 +9,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Restore stable Avatar voice data
-        run: python -c "from pathlib import Path; import re; p=Path('index.html'); s=p.read_text(encoding='utf-8'); s=re.sub(r\"const voices=\\[.*?\\];\", \"const voices=[['Ayşe','Kadın • Türkçe','Doğal ve sıcak','mic'],['Mert','Erkek • Türkçe','Profesyonel ve net','volume-2'],['Selin','Kadın • Türkçe','Enerjik ve genç','sparkles'],['Emre','Erkek • Türkçe','Kurumsal ve sakin','headphones']];\", s, count=1, flags=re.S); p.write_text(s,encoding='utf-8')"
-      - name: Remove temporary workflow
-        run: rm -f .github/workflows/fix-avatar-voice.yml
-      - name: Commit changes
+      - name: Remove report navigation
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          s = s.replace(",[\'Raporlar\',\'chart-no-axes-combined\',[\'Genel Raporlar\',\'Eğitim Performansı\',\'Personel Analizi\',\'Katılım Raporları\',\'Excel Dışa Aktar\']]", "")
+          s = s.replace(",[\'Raporları İncele\',\'bar-chart-3\']", "")
+          p.write_text(s, encoding='utf-8')
+          PY
+      - name: Commit cleanup
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add index.html .github/workflows/fix-avatar-voice.yml
-          git diff --cached --quiet || git commit -m "Restore stable Avatar voice data"
+          git add index.html
+          git diff --cached --quiet || git commit -m "Remove reports menu and action"
           git push
